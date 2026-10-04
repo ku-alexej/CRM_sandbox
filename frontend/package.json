@@ -1,0 +1,29 @@
+{
+  "name": "app-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Frontend for CRM",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ku-alexej/CRM_sandbox.git"
+  },
+  "author": "Aleksei Kurochkin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ku-alexej/CRM_sandbox/issues"
+  },
+  "homepage": "https://github.com/ku-alexej/CRM_sandbox#readme",
+  "dependencies": {
+      "react": "^19.3.0",
+      "react-dom": "^19.3.0"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^6.1.1",
+        "vite": "^8.3.2"
+  }
+}
