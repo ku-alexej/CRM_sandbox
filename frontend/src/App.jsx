@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef} from 'react';
 import { api } from './api/api';
 import Table from './components/Table.jsx';
 
@@ -17,17 +17,53 @@ export default function App() {
     const [rows, setRows] = useState([]);
     const [total, setTotal] = useState(0);
     const [newCol, setNewCol] = useState({ name: '', type: 'text' });
+    const [hasMore, setHasMore] = useState(true);
 
-    // Load the columns and the first page of contacts once.
+    const reqId = useRef(0);
+    const busy = useRef(false);
+    const scrollRef = useRef(null);
+    const sentinelRef = useRef(null);
+
+    function buildParams(offset) {
+        return new URLSearchParams({ limit: PAGE, offset }).toString();
+    }
+
+    async function loadRows(reset) {
+        if (busy.current && !reset) return;
+        busy.current = true;
+        const id = ++reqId.current;
+        const offset = reset ? 0 : rows.length;
+        try {
+            const data = await api.get(`/contacts?${buildParams(offset)}`);
+            if (id !== reqId.current) return;
+            setRows((prev) => (reset ? data.items : [...prev, ...data.items]));
+            setTotal(data.total);
+            setHasMore(offset + data.items.length < data.total);
+            if (reset && scrollRef.current) scrollRef.current.scrollTop = 0;
+        } catch (e) {
+            if (id === reqId.current) alert(e.message);
+        } finally {
+            if (id === reqId.current) busy.current = false;
+        }
+    }
+
     useEffect(() => {
-        Promise.all([api.get('/columns'), api.get(`/contacts?limit=${PAGE}&offset=0`)])
-            .then(([cols, data]) => {
-                setColumns(cols);
-                setRows(data.items);
-                setTotal(data.total);
-            })
-            .catch((e) => alert(e.message));
+        api.get('/columns').then(setColumns).catch((e) => alert(e.message));
     }, []);
+
+    useEffect(() => {
+        loadRows(true);
+    }, [columns.length]);
+
+    useEffect(() => {
+        if (!hasMore || !sentinelRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => entry.isIntersecting && loadRows(false),
+            { root: scrollRef.current, rootMargin: '200px' },
+        );
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [rows.length, hasMore]);
 
     const addColumn = safe(async () => {
         if (!newCol.name.trim()) {
@@ -64,10 +100,28 @@ export default function App() {
         await api.patch('/columns/reorder', { ids: list.map((c) => c.id) });
     });
 
+    const saveCell = safe(async (row, col, value) => {
+        const updated = await api.patch(`/contacts/${row.id}`, { data: { [col.id]: value } });
+        setRows((rs) => rs.map((r) => (r.id === row.id ? updated : r)));
+    });
+
+    const addContact = safe(async () => {
+        await api.post('/contacts', {});
+        await loadRows(true);
+    });
+
+    const deleteContact = safe(async (row) => {
+        if (!confirm('Delete this contact?')) return;
+        await api.del(`/contacts/${row.id}`);
+        setRows((rs) => rs.filter((r) => r.id !== row.id));
+        setTotal((t) => t - 1);
+    });
+
     return (
         <div className="app">
             <header className="toolbar">
                 <h1>Contacts</h1>
+                <button className="primary" onClick={addContact}>Add contact</button>
                 <span className="spacer" />
                 <input
                     placeholder="Column name"
@@ -88,9 +142,13 @@ export default function App() {
             <Table
                 columns={columns}
                 rows={rows}
+                scrollRef={scrollRef}
+                sentinelRef={sentinelRef}
                 onRename={renameColumn}
                 onDelete={deleteColumn}
                 onReorder={reorderColumns}
+                onSaveCell={saveCell}
+                onDeleteRow={deleteContact}
             />
         </div>
     );
