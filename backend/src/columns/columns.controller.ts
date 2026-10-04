@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 
 const TYPES = ['text', 'number', 'date', 'phone'];
@@ -10,20 +10,61 @@ export class ColumnsController {
     @Get()
     async getColumns() {
         const r = await this.db.query(
-            'SELECT id, name, type, position FROM columns ORDER BY position, id'
+            `SELECT id, name, type, position FROM columns ORDER BY position, id`
         );
         return r.rows;
     }
 
-    // @Post()
-    // async createColumn() {
-    // }
+    @Post()
+    async createColumn(@Body() body: any) {
+        const columnName = String(body?.name || '').trim();
+        if (!columnName) {
+            throw new BadRequestException('Column name is required');
+        }
+        if (!TYPES.includes(body?.type)) {
+            throw new BadRequestException('Invalid column type');
+        }
+        const r = await this.db.query(
+            `INSERT INTO columns (name, type, position)
+            VALUES ($1, $2, (SELECT COALESCE(MAX(position), 0) + 1 FROM columns))
+            RETURNING id, name, type, position`,
+            [columnName, body.type],
+        );
+        return r.rows[0];
+    }
 
-    // @Patch(':id')
-    // async updateColumn() {
-    // }
+    @Patch(':id')
+    async updateColumn(@Param('id') id: string, @Body() body: any) {
+        const columnName = String(body?.name || '').trim();
+        if (!columnName) {
+            throw new BadRequestException('Name is required');
+        }
+        const r = await this.db.query(
+            `UPDATE columns
+            SET name = $1
+            WHERE id = $2
+            RETURNING id, name, type, position`,
+            [columnName, id]
+        );
+        if (!r.rowCount) {
+            throw new NotFoundException();
+        }
+        return r.rows[0];
+    }
 
-    // @Delete(':id')
-    // async deleteColumn() {
-    // }
+    @Delete(':id')
+    async deleteColumn(@Param('id') id: string) {
+        const r = await this.db.query(
+            `DELETE FROM columns WHERE id = $1 RETURNING id`,
+            [id]
+        );
+        if (!r.rowCount) {
+            throw new NotFoundException();
+        }
+        await this.db.query(
+            `UPDATE contacts SET data = data - $1::text`,
+            [id]
+        );
+        return {ok: true};
+    }
 }
