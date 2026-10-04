@@ -7,6 +7,7 @@
 --accent: #107c41;
 --accent-soft: #e1eee6;
 --accent-dark: #0b5a2e;
+--danger: #c50f1f;
 }
 
 * {
@@ -192,4 +193,25 @@ border: 1px solid var(--line);
 border-radius: 2px;
 padding: 5px 10px;
 background: #fff;
+}
+
+.actions-col {
+min-width: 90px;
+width: 90px;
+padding: 4px 8px;
+}
+
+button.danger {
+color: var(--danger);
+}
+
+.cell-input {
+width: 100%;
+border: 2px solid var(--accent);
+border-radius: 0;
+padding: 5px 6px;
+}
+
+.sentinel {
+height: 1px;
 }
