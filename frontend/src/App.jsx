@@ -55,6 +55,15 @@ export default function App() {
         setColumns((cs) => cs.filter((c) => c.id !== col.id));
     });
 
+    const reorderColumns = safe(async (fromId, toId) => {
+        const list = [...columns];
+        const from = list.findIndex((c) => c.id === fromId);
+        const to = list.findIndex((c) => c.id === toId);
+        list.splice(to, 0, list.splice(from, 1)[0]);
+        setColumns(list);
+        await api.patch('/columns/reorder', { ids: list.map((c) => c.id) });
+    });
+
     return (
         <div className="app">
             <header className="toolbar">
@@ -81,6 +90,7 @@ export default function App() {
                 rows={rows}
                 onRename={renameColumn}
                 onDelete={deleteColumn}
+                onReorder={reorderColumns}
             />
         </div>
     );

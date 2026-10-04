@@ -33,6 +33,20 @@ export class ColumnsController {
         return r.rows[0];
     }
 
+    @Patch('reorder')
+    async reorderColumn(@Body() body: any) {
+        if (!Array.isArray(body?.ids)) {
+            throw new BadRequestException('ids must be an array');
+        }
+        for (let i = 0; i < body.ids.length; i++) {
+            await this.db.query(
+                `UPDATE columns SET position = $1 WHERE id = $2`,
+                [i + 1, body.ids[i]]
+            );
+        }
+        return this.getColumns();
+    }
+
     @Patch(':id')
     async updateColumn(@Param('id') id: string, @Body() body: any) {
         const columnName = String(body?.name || '').trim();
