@@ -11,6 +11,7 @@ docker compose up --build
 ```
 - Frontend: http://localhost:5173
 - API: http://localhost:3000
+
 Stop / remove everything (`-v` also deletes the database volume, i.e. all data):
 ```
 docker compose down
