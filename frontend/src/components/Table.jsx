@@ -1,4 +1,4 @@
-export default function Table({ columns, rows }) {
+export default function Table({ columns, rows, onRename, onDelete}) {
     return (
         <div className="table-wrap">
             <table>
@@ -12,6 +12,8 @@ export default function Table({ columns, rows }) {
                                         {col.name}
                                         <span className="th-type">{col.type}</span>
                                     </span>
+                                    <button className="icon" onClick={() => onRename(col)} title="Rename column">✎</button>
+                                    <button className="icon" onClick={() => onDelete(col)} title="Delete column">✕</button>
                                 </div>
                             </th>
                         ))}
