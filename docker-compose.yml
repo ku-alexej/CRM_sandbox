@@ -1,0 +1,18 @@
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    environment:
+      POSTGRES_USER: aleskei
+      POSTGRES_PASSWORD: fox
+      POSTGRES_DB: crm
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aleskei"]
+      interval: 3s
+      retries: 20
+
+volumes:
+  pgdata:
