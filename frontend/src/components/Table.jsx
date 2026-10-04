@@ -109,7 +109,7 @@ export default function Table({
                     ))}
                 </tbody>
             </table>
-            {rows.length === 0 && <p className="empty">No contacts match.</p>}
+            {rows.length === 0 && <p className="empty">No contacts yet.</p>}
             <div ref={sentinelRef} className="sentinel" />
         </div>
     );

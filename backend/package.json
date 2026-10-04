@@ -5,7 +5,34 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "seed": "node dist/seed.js"
+    "seed": "node dist/seed.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --config test/jest-e2e.json --runInBand",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": ".",
+    "testRegex": ".*\\.spec\\.ts$",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "tsconfig": {
+            "module": "ESNext"
+          }
+        }
+      ]
+    },
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -26,7 +53,13 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@nestjs/testing": "^12.1.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.6.4",
+    "@types/supertest": "^7.2.1",
+    "jest": "^30.2.0",
+    "supertest": "^7.3.1",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.x"
   }
 }
